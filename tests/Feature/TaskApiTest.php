@@ -34,6 +34,77 @@ class TaskApiTest extends TestCase
             'title' => 'Test taak'
         ]);
     }
+
+    public function test_can_update_task_description()
+    {
+        $task = Task::factory()->create([
+            'title' => 'Oude omschrijving'
+        ]);
+
+        $response = $this->putJson('/api/task/' . $task->id, [
+            'title' => 'Nieuwe omschrijving'
+        ]);
+
+        $response->assertStatus(200)
+                ->assertJsonFragment([
+                    'title' => 'Nieuwe omschrijving'
+                ]);
+
+        $this->assertDatabaseHas('tasks', [
+            'id' => $task->id,
+            'title' => 'Nieuwe omschrijving'
+        ]);
+    }
+
+    public function test_can_mark_task_complete()
+    {
+        $task = Task::factory()->create([
+            'is_done' => false
+        ]);
+
+        $response = $this->putJson('/api/task/' . $task->id . '/complete');
+
+        $response->assertStatus(200);
+
+        $this->assertDatabaseHas('tasks', [
+            'id' => $task->id,
+            'is_done' => true
+        ]);
+    }
+
+    public function test_can_delete_task()
+    {
+        $task = Task::factory()->create();
+
+        $response = $this->deleteJson('/api/task/' . $task->id);
+
+        $response->assertStatus(204);
+
+        $this->assertDatabaseMissing('tasks', [
+            'id' => $task->id
+        ]);
+    }
+
+    public function test_can_get_completed_tasks()
+    {
+        $completedTask = Task::factory()->create([
+            'is_done' => true
+        ]);
+        $incompleteTask = Task::factory()->create([
+            'is_done' => false
+        ]);
+
+        $response = $this->getJson('/api/task/complete');
+
+        $response->assertStatus(200)
+                ->assertJsonFragment([
+                    'id' => $completedTask->id,
+                    'is_done' => 1
+                ])
+                ->assertJsonMissing([
+                    'id' => $incompleteTask->id
+                ]);
+    }
 }
 
 

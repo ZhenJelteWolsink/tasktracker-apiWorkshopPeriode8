@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  app:
+    image: tasktracker-api:latest
+    container_name: task-tracker-api
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - appdata:/home
+
+    restart: unless-stopped
+
+volumes:
+  appdata:
